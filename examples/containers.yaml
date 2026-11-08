@@ -1,0 +1,22 @@
+networks:
+  - name: br0
+    address: 192.168.100.1/24
+    masquerade: true
+  - name: internal0
+    address: 192.168.200.1/24
+
+containers:
+  - name: web1
+    base: trixie
+    networks:
+      - bridge: br0
+        ipv4_address: 192.168.100.10/24
+        ipv4_gateway: 192.168.100.1
+      - bridge: internal0
+        ipv4_address: 192.168.200.10/24
+
+  - name: db1
+    base: trixie
+    networks:
+      - bridge: internal0
+        ipv4_address: 192.168.200.20/24
