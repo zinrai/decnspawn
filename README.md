@@ -32,9 +32,11 @@ The base must:
 
 - have `systemd` and `dbus`, so that the container boots and `machinectl shell` and `machinectl login` work
 - have `systemd-networkd` enabled, which applies the generated addresses
-- have an empty `/etc/machine-id` and no `/var/lib/dbus/machine-id` file, so that each clone gets its own machine ID. The `dbus` package writes the latter, and systemd copies it into the machine ID when `/etc/machine-id` is empty.
+- have no machine ID, that is an `/etc/machine-id` that is missing, empty or `uninitialized`, and no `/var/lib/dbus/machine-id` file, so that each clone gets its own machine ID. The `dbus` package writes the latter, and systemd copies it into the machine ID when `/etc/machine-id` is empty.
 - have no `/etc/hostname`, so that each clone takes its container name as hostname
 - have no SSH host keys if `openssh-server` is installed, so that clones do not share them
+
+The state of `/etc/machine-id` decides whether a clone's first start is a first boot to systemd. With `uninitialized` or no file it is: units with `ConditionFirstBoot=yes` run, such as `sshd-keygen.service` of Debian trixie, which generates the SSH host keys, and systemd enables every unit its presets do not disable. With an empty file it is not, and the clone starts with the units the base has enabled. The choice belongs to whoever builds the base; `decnspawn` takes each of them as it is.
 
 Example for Debian trixie:
 

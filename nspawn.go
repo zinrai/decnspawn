@@ -101,8 +101,10 @@ func checkBaseIdentity(root *os.Root) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
-	if len(strings.TrimSpace(string(id))) > 0 {
-		return fmt.Errorf("etc/machine-id is not empty; every clone would share it")
+	// "uninitialized" carries no ID either: it is systemd's mark for a first
+	// boot, which image builders such as mkosi leave in place.
+	if state := strings.TrimSpace(string(id)); state != "" && state != "uninitialized" {
+		return fmt.Errorf("etc/machine-id holds a machine ID; every clone would share it")
 	}
 	// Only a regular file: a symlink to /etc/machine-id carries no ID of its own.
 	info, err := root.Lstat("var/lib/dbus/machine-id")

@@ -42,6 +42,27 @@ func TestCleanBaseIsAccepted(t *testing.T) {
 	}
 }
 
+func TestBaseWithoutAMachineIDIsAccepted(t *testing.T) {
+	for name, content := range map[string]string{"empty": "", "uninitialized": "uninitialized\n"} {
+		t.Run(name, func(t *testing.T) {
+			dir := cleanBase(t)
+			writeTree(t, dir, map[string]string{"etc/machine-id": content})
+			if err := checkBaseIdentity(openRoot(t, dir)); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+	t.Run("missing", func(t *testing.T) {
+		dir := cleanBase(t)
+		if err := os.Remove(filepath.Join(dir, "etc/machine-id")); err != nil {
+			t.Fatal(err)
+		}
+		if err := checkBaseIdentity(openRoot(t, dir)); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
 func TestBaseSharingAnIdentityIsRejected(t *testing.T) {
 	cases := map[string]map[string]string{
 		"machine ID":       {"etc/machine-id": "73cb569738634dd882ede2ba9e734538\n"},
